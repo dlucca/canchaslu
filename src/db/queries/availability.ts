@@ -1,4 +1,4 @@
-import { and, eq, gt, inArray, lt } from 'drizzle-orm';
+import { and, eq, gt, inArray, isNull, lt, or, sql } from 'drizzle-orm';
 
 import { db } from '@/db';
 import {
@@ -89,6 +89,14 @@ export async function fetchAvailabilityInputs(
             inArray(reservations.status, ['pending', 'confirmed']),
             lt(reservations.startsAt, endUtc),
             gt(reservations.endsAt, startUtc),
+            // Exclude `pending` rows whose hold window has elapsed. The cron
+            // only runs once a day on Vercel Hobby, so the read path filters
+            // here for immediate slot release.
+            or(
+              eq(reservations.status, 'confirmed'),
+              isNull(reservations.expiresAt),
+              gt(reservations.expiresAt, sql`now()`),
+            ),
           ),
         ),
       db

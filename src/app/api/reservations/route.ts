@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm';
 
 import { fetchActiveCourtById } from '@/db/queries/courts';
 import { fetchAvailabilityInputs } from '@/db/queries/availability';
-import { createPendingReservation } from '@/db/queries/reservations';
+import { createPendingReservation, expireOverdueReservations } from '@/db/queries/reservations';
 import { db } from '@/db';
 import { reservations as reservationsTable, venues } from '@/db/schema';
 
@@ -92,6 +92,15 @@ export async function POST(req: NextRequest) {
     });
 
     const expiresAt = new Date(Date.now() + RESERVATION_TIMEOUT_MIN * 60_000);
+
+    // Sweep any pending reservations whose hold has elapsed BEFORE we insert.
+    // Vercel Hobby caps cron at once-per-day, so we expire inline so the
+    // EXCLUDE constraint does not reject this insert because of a stale row.
+    await expireOverdueReservations().catch((err) => {
+      console.error(
+        JSON.stringify({ level: 'warn', requestId, route: 'POST /api/reservations', step: 'expire_pre_insert', err: String(err) }),
+      );
+    });
 
     // INSERT — EXCLUDE constraint may reject with overlap. Catch and translate to 409.
     let reservation;
