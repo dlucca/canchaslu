@@ -6,3 +6,6 @@ export * from './scheduleExceptions';
 export * from './pricingRules';
 export * from './adminUsers';
 export * from './reservations';
+export * from './blockedSlots';
+export * from './payments';
+export * from './auditLog';
