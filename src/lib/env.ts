@@ -1,14 +1,22 @@
 import { z } from 'zod';
 
+// Treat empty strings (Vercel injects empty for unset vars) and undefined as absent.
+const optionalUrl = z.preprocess(
+  (v) => (v === undefined || v === '' ? undefined : v),
+  z.string().url().optional(),
+);
+
+const optionalUrlWithDefault = (fallback: string) =>
+  z.preprocess(
+    (v) => (v === undefined || v === '' ? fallback : v),
+    z.string().url().catch(fallback),
+  );
+
 const Schema = z.object({
   DATABASE_URL: z.string().url(),
   DIRECT_URL: z.string().url(),
-  DATABASE_URL_TEST: z
-    .string()
-    .url()
-    .optional()
-    .or(z.literal('').transform(() => undefined)),
-  NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
+  DATABASE_URL_TEST: optionalUrl,
+  NEXT_PUBLIC_APP_URL: optionalUrlWithDefault('http://localhost:3000'),
 });
 
 const parsed = Schema.safeParse(process.env);
