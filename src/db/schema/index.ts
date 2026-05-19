@@ -5,3 +5,4 @@ export * from './courtSchedules';
 export * from './scheduleExceptions';
 export * from './pricingRules';
 export * from './adminUsers';
+export * from './reservations';
