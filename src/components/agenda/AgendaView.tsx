@@ -9,6 +9,7 @@ import { REFRESH_INTERVAL_MS, ERROR_RETRY_MS } from '@/lib/constants';
 import { CourtSelect, type Court } from './CourtSelect';
 import { DateSelect } from './DateSelect';
 import { SlotCard } from './SlotCard';
+import { ReservationSheet, type ReservationSheetSlot } from './ReservationSheet';
 
 type Slot = {
   startsAtUtc: string;
@@ -46,6 +47,7 @@ export function AgendaView({
   const [data, setData] = useState<AvailabilityResponse>(initialAvailability);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<ReservationSheetSlot | null>(null);
 
   const isInitialMount = useRef(true);
 
@@ -121,6 +123,9 @@ export function AgendaView({
     return () => clearTimeout(t);
   }, [error, courtId, date, fetchData]);
 
+  const currentCourt = initialCourts.find((c) => c.id === courtId);
+  const courtName = currentCourt?.name ?? '';
+
   return (
     <div className="flex flex-col gap-4">
       <header className="flex items-center justify-between">
@@ -158,13 +163,27 @@ export function AgendaView({
               available={slot.available}
               currency={data.currency}
               onSelect={() => {
-                console.log('TODO: open reservation flow', slot);
-                toast.info('Reserva próximamente disponible');
+                setSelectedSlot({
+                  startsAtUtc: slot.startsAtUtc,
+                  endsAtUtc: slot.endsAtUtc,
+                  localStart: slot.localStart,
+                  localEnd: slot.localEnd,
+                  priceCents: slot.priceCents,
+                });
               }}
             />
           ))}
         </div>
       )}
+      <ReservationSheet
+        open={selectedSlot !== null}
+        onClose={() => setSelectedSlot(null)}
+        slot={selectedSlot}
+        courtId={courtId}
+        courtName={courtName}
+        date={date}
+        currency={data.currency}
+      />
     </div>
   );
 }
