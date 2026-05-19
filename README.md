@@ -2,6 +2,8 @@
 
 Mobile-first webapp for booking football court time. See [PRD-Canchas-Futbol-v3.md](./PRD-Canchas-Futbol-v3.md) for the full product spec.
 
+Live: [canchaslu.vercel.app](https://canchaslu.vercel.app)
+
 ## Stack
 
 Next.js 15 (App Router) · TypeScript strict · TailwindCSS + shadcn/ui · Drizzle ORM · Supabase Postgres · Vercel (planned) · MercadoPago Checkout Pro (planned)
